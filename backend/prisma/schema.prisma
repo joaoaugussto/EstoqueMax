@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  nome           String
+  empresa        String
+  email          String           @unique
+  senha          String
+  isActive       Boolean          @default(true)
+  criadoEm       DateTime         @default(now())
+  produtos       Produto[]
+  fornecedores   Fornecedor[]
+  movimentacoes  Movimentacao[]
+  funcionarios   Funcionario[]
+  pedidos        PedidoCompra[]
+  depositos      Deposito[]
+  transferencias Transferencia[]
+}
+
+model Produto {
+  id               Int               @id @default(autoincrement())
+  nome             String
+  sku              String            @unique
+  categoria        String
+  quantidade       Int               @default(0)
+  minimo           Int               @default(0)
+  preco            Float             @default(0)
+  fornecedorId     Int?
+  fornecedor       Fornecedor?       @relation(fields: [fornecedorId], references: [id])
+  userId           Int
+  user             User              @relation(fields: [userId], references: [id])
+  movimentacoes    Movimentacao[]
+  pedidoItens      PedidoItem[]
+  estoqueDepositos EstoqueDeposito[]
+  transferencias   Transferencia[]
+  criadoEm         DateTime          @default(now())
+}
+
+model Fornecedor {
+  id        Int            @id @default(autoincrement())
+  nome      String
+  contato   String?
+  email     String?
+  telefone  String?
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id])
+  produtos  Produto[]
+  pedidos   PedidoCompra[]
+  criadoEm  DateTime       @default(now())
+}
+
+model Movimentacao {
+  id         Int       @id @default(autoincrement())
+  tipo       String
+  quantidade Int
+  obs        String?
+  produtoId  Int
+  produto    Produto   @relation(fields: [produtoId], references: [id])
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id])
+  depositoId Int?
+  deposito   Deposito? @relation(fields: [depositoId], references: [id])
+  criadoEm   DateTime  @default(now())
+}
+
+model Funcionario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String
+  cargo     String   @default("funcionario")
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  criadoEm  DateTime @default(now())
+}
+
+model PedidoCompra {
+  id           Int          @id @default(autoincrement())
+  status       String       @default("pendente")
+  obs          String?
+  fornecedorId Int?
+  fornecedor   Fornecedor?  @relation(fields: [fornecedorId], references: [id])
+  userId       Int
+  user         User         @relation(fields: [userId], references: [id])
+  itens        PedidoItem[]
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+}
+
+model PedidoItem {
+  id         Int          @id @default(autoincrement())
+  quantidade Int
+  pedidoId   Int
+  pedido     PedidoCompra @relation(fields: [pedidoId], references: [id])
+  produtoId  Int
+  produto    Produto      @relation(fields: [produtoId], references: [id])
+}
+
+model Deposito {
+  id                    Int               @id @default(autoincrement())
+  nome                  String
+  descricao             String?
+  userId                Int
+  user                  User              @relation(fields: [userId], references: [id])
+  estoques              EstoqueDeposito[]
+  movimentacoes         Movimentacao[]
+  transferenciasOrigem  Transferencia[]   @relation("origem")
+  transferenciasDestino Transferencia[]   @relation("destino")
+  criadoEm              DateTime          @default(now())
+}
+
+model EstoqueDeposito {
+  id         Int      @id @default(autoincrement())
+  quantidade Int      @default(0)
+  produtoId  Int
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  depositoId Int
+  deposito   Deposito @relation(fields: [depositoId], references: [id])
+  @@unique([produtoId, depositoId])
+}
+
+model Transferencia {
+  id         Int      @id @default(autoincrement())
+  quantidade Int
+  obs        String?
+  produtoId  Int
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  origemId   Int
+  origem     Deposito @relation("origem", fields: [origemId], references: [id])
+  destinoId  Int
+  destino    Deposito @relation("destino", fields: [destinoId], references: [id])
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  criadoEm   DateTime @default(now())
+}
