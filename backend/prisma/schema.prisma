@@ -22,6 +22,7 @@ model User {
   pedidos        PedidoCompra[]
   depositos      Deposito[]
   transferencias Transferencia[]
+  notificacoes   Notificacao[]
 }
 
 model Produto {
@@ -138,4 +139,15 @@ model Transferencia {
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
   criadoEm   DateTime @default(now())
+}
+
+model Notificacao {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  mensagem  String
+  tipo      String   @default("alerta")
+  lida      Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  criadoEm DateTime  @default(now())
 }

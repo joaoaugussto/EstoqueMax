@@ -820,6 +820,93 @@ app.get("/relatorios/graficos", auth, async (req, res) => {
   }
 });
 
+// NOTIFICAÇÕES
+app.get("/notificacoes", auth, async (req, res) => {
+  try {
+    const notificacoes = await prisma.notificacao.findMany({
+      where: { userId: req.user.id },
+      orderBy: { criadoEm: "desc" },
+      take: 20,
+    });
+    res.json(notificacoes);
+  } catch (e) {
+    res.status(500).json({ erro: "Erro ao buscar notificações" });
+  }
+});
+
+app.patch("/notificacoes/lidas/todas", auth, async (req, res) => {
+  try {
+    await prisma.notificacao.updateMany({
+      where: { userId: req.user.id, lida: false },
+      data: { lida: true },
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ erro: "Erro ao marcar notificações como lidas" });
+  }
+});
+
+app.patch("/notificacoes/:id/lida", auth, async (req, res) => {
+  try {
+    const dono = await prisma.notificacao.findFirst({
+      where: { id: Number(req.params.id), userId: req.user.id },
+    });
+    if (!dono) return res.status(404).json({ erro: "Notificação não encontrada" });
+    await prisma.notificacao.update({
+      where: { id: Number(req.params.id) },
+      data: { lida: true },
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ erro: "Erro ao marcar notificação como lida" });
+  }
+});
+
+app.delete("/notificacoes/:id", auth, async (req, res) => {
+  try {
+    const dono = await prisma.notificacao.findFirst({
+      where: { id: Number(req.params.id), userId: req.user.id },
+    });
+    if (!dono) return res.status(404).json({ erro: "Notificação não encontrada" });
+    await prisma.notificacao.delete({ where: { id: Number(req.params.id) } });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ erro: "Erro ao deletar notificação" });
+  }
+});
+
+app.post("/notificacoes/verificar-estoque", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const criticos = await prisma.$queryRaw`
+      SELECT * FROM "Produto"
+      WHERE "userId" = ${userId}
+      AND "minimo" > 0
+      AND quantidade <= minimo
+    `;
+    let criadas = 0;
+    for (const p of criticos) {
+      const jaExiste = await prisma.notificacao.findFirst({
+        where: { userId, mensagem: { contains: p.sku }, lida: false },
+      });
+      if (!jaExiste) {
+        await prisma.notificacao.create({
+          data: {
+            titulo: "Estoque crítico",
+            mensagem: `${p.nome} (${p.sku}) está com apenas ${p.quantidade} unidade(s). Mínimo: ${p.minimo}`,
+            tipo: "alerta",
+            userId,
+          },
+        });
+        criadas++;
+      }
+    }
+    res.json({ criadas });
+  } catch (e) {
+    res.status(500).json({ erro: "Erro ao verificar estoque crítico" });
+  }
+});
+
 app.listen(process.env.PORT, () =>
   console.log(`Servidor rodando na porta ${process.env.PORT}`)
 );

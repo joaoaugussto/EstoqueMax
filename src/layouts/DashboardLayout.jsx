@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Notificacoes from "../components/Notificacoes";
 import logo from "../assets/logo.png";
 
 const NAV = [
@@ -66,8 +67,14 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      <main style={{ flex: 1, overflow: "auto" }}>
-        <Outlet />
+      <main style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "12px 24px", borderBottom: `1px solid ${C.border}`, background: C.surface, gap: 12, flexShrink: 0 }}>
+          <Notificacoes />
+          <div style={{ fontSize: 13, color: C.muted }}>{user?.nome}</div>
+        </div>
+        <div style={{ flex: 1, overflow: "auto" }}>
+          <Outlet />
+        </div>
       </main>
     </div>
   );
