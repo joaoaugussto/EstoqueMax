@@ -8,6 +8,11 @@ function headers() {
 export async function apiFetch(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, { ...options, headers: headers() });
   const data = await res.json();
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return;
+  }
   if (!res.ok) throw new Error(data.erro || "Erro na requisição");
   return data;
 }

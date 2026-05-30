@@ -118,11 +118,12 @@ export default function Admin() {
 
   async function toggleStatus(id, isActive) {
     try {
-      await fetch(`${BASE}/admin/clientes/${id}/status`, {
+      const res = await fetch(`${BASE}/admin/clientes/${id}/status`, {
         method: "PATCH",
         headers: adminHeaders(adminToken),
         body: JSON.stringify({ isActive: !isActive }),
       });
+      if (!res.ok) { notify(setMsg, setMsgType, "Falha ao alterar status.", "err"); return; }
       notify(setMsg, setMsgType, `Conta ${!isActive ? "ativada" : "desativada"}.`);
       carregarClientes();
     } catch {
@@ -134,11 +135,13 @@ export default function Admin() {
     if (!resetSenha || resetSenha.length < 6)
       return notify(setMsg, setMsgType, "Senha deve ter pelo menos 6 caracteres.", "err");
     try {
-      await fetch(`${BASE}/admin/clientes/${id}/resetar-senha`, {
+      const res = await fetch(`${BASE}/admin/clientes/${id}/resetar-senha`, {
         method: "POST",
         headers: adminHeaders(adminToken),
         body: JSON.stringify({ novaSenha: resetSenha }),
       });
+      const data = await res.json();
+      if (!res.ok) { notify(setMsg, setMsgType, data.erro || "Falha ao resetar senha.", "err"); return; }
       notify(setMsg, setMsgType, "Senha resetada com sucesso!");
       setResetId(null);
       setResetSenha("");
