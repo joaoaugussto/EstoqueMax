@@ -9,9 +9,14 @@ export default function Notificacoes() {
   const ref = useRef();
   const navigate = useNavigate();
 
+  const notificacoesAtivas = localStorage.getItem("notificacoes_ativas") !== "false";
+  if (!notificacoesAtivas) return null;
+
   const naoLidas = notificacoes.filter(n => !n.lida).length;
 
   async function carregar() {
+    const ativas = localStorage.getItem("notificacoes_ativas") !== "false";
+    if (!ativas) return;
     try {
       await apiFetch("/notificacoes/verificar-estoque", { method: "POST" });
       const data = await apiFetch("/notificacoes");

@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { C } from "../../theme";
+import { apiFetch } from "../../api";
 
 export default function Configuracoes() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(true);
-  const [notificacoes, setNotificacoes] = useState(false);
+  const [notificacoes, setNotificacoes] = useState(() => {
+    return localStorage.getItem("notificacoes_ativas") !== "false";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("notificacoes_ativas", notificacoes);
+  }, [notificacoes]);
 
   function handleLogout() {
     logout();
