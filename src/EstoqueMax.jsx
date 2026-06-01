@@ -20,7 +20,7 @@ const steps = [
 ];
 
 const faqs = [
-  { q: "Preciso instalar algum software?", a: "Não. O EstoqueMax é 100% web e funciona em qualquer navegador, computador ou celular." },
+  { q: "Preciso instalar algum software?", a: "Não. O EstoqueMax é 100% web e funciona em qualquer navegador e computador." },
   { q: "Posso importar minha planilha atual?", a: "Sim. Aceitamos arquivos .xlsx e .csv para importação em massa de produtos e histórico." },
   { q: "Há contrato de fidelidade?", a: "Não. Os planos são mensais e você pode cancelar a qualquer momento sem multa." },
 ];
